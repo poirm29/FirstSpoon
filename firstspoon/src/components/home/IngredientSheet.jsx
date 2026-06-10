@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { getIngredients, addCustomIngredient } from '../../utils/storage.js'
 import { CATEGORIES } from '../../data/ingredients.js'
 
+const MEAL_LABELS = { morning: '아침', lunch: '점심', dinner: '저녁' }
+
 export default function IngredientSheet({ mealKey, onAdd, onClose }) {
   const [ingredients, setIngredients] = useState([])
   const [category, setCategory] = useState('곡류')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState(null)
-  const [ml, setMl] = useState('')
+  const [selectedList, setSelectedList] = useState([]) // [{name, category, ml:''}]
   const [customName, setCustomName] = useState('')
   const [customMl, setCustomMl] = useState('')
   const [visible, setVisible] = useState(false)
@@ -22,21 +23,41 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
     setTimeout(onClose, 280)
   }
 
-  function handleSelect(ing) {
-    setSelected(ing)
-    setMl('')
+  function handleToggle(ing) {
+    setSelectedList((prev) => {
+      const exists = prev.find((s) => s.name === ing.name)
+      if (exists) return prev.filter((s) => s.name !== ing.name)
+      return [...prev, { name: ing.name, category: ing.category, ml: '' }]
+    })
   }
 
-  function handleAdd() {
-    if (!selected || !ml) return
-    onAdd({ name: selected.name, category: selected.category, ml: parseInt(ml) })
+  function handleMlChange(name, value) {
+    setSelectedList((prev) =>
+      prev.map((s) => (s.name === name ? { ...s, ml: value } : s))
+    )
+  }
+
+  function handleRemoveSelected(name) {
+    setSelectedList((prev) => prev.filter((s) => s.name !== name))
+  }
+
+  function handleConfirm() {
+    const valid = selectedList.filter((s) => s.ml && parseInt(s.ml) > 0)
+    if (valid.length === 0) return
+    onAdd(valid.map((s) => ({ name: s.name, category: s.category, ml: parseInt(s.ml) })))
   }
 
   function handleCustomAdd() {
     if (!customName.trim() || !customMl) return
-    const newIng = addCustomIngredient(customName.trim())
-    setIngredients(newIng)
-    onAdd({ name: customName.trim(), category: '기타', ml: parseInt(customMl) })
+    const newList = addCustomIngredient(customName.trim())
+    setIngredients(newList)
+    setSelectedList((prev) => {
+      const exists = prev.find((s) => s.name === customName.trim())
+      if (exists) return prev
+      return [...prev, { name: customName.trim(), category: '기타', ml: customMl }]
+    })
+    setCustomName('')
+    setCustomMl('')
   }
 
   const filtered = ingredients.filter((ing) => {
@@ -44,27 +65,30 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
     return ing.category === category
   })
 
+  const hasValidItems = selectedList.some((s) => s.ml && parseInt(s.ml) > 0)
+
   return (
     <>
       <div
-        className="fixed inset-0 z-60 bg-black transition-opacity duration-300"
+        className="fixed inset-0 bg-black transition-opacity duration-300"
         style={{ opacity: visible ? 0.5 : 0, zIndex: 60 }}
         onClick={handleClose}
       />
       <div
-        className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-w-md mx-auto"
+        className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-w-md mx-auto flex flex-col"
         style={{
           transform: visible ? 'translateY(0)' : 'translateY(100%)',
-          maxHeight: '85vh',
+          maxHeight: '88vh',
           zIndex: 70,
         }}
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
+        <div className="flex justify-center pt-3 pb-1 flex-none">
           <div className="w-10 h-1 bg-gray-200 rounded-full" />
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 flex-none">
           <h3 className="text-sm font-bold text-gray-800">재료 선택</h3>
           <button onClick={handleClose} className="p-1 text-gray-400">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -74,7 +98,7 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
         </div>
 
         {/* Search */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-2 flex-none">
           <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <circle cx="7" cy="7" r="5" stroke="#9CA3AF" strokeWidth="1.5"/>
@@ -92,7 +116,7 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
 
         {/* Category tabs */}
         {!search && (
-          <div className="flex gap-1 px-4 pb-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-1 px-4 pb-2 overflow-x-auto scrollbar-hide flex-none">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -110,21 +134,24 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
         )}
 
         {/* Ingredient grid */}
-        <div className="overflow-y-auto px-4" style={{ maxHeight: '35vh' }}>
+        <div className="overflow-y-auto px-4 flex-1 min-h-0">
           <div className="grid grid-cols-3 gap-2 pb-2">
-            {filtered.map((ing) => (
-              <button
-                key={ing.name}
-                onClick={() => handleSelect(ing)}
-                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
-                  selected?.name === ing.name
-                    ? 'bg-purple-600 text-white border-purple-600'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300'
-                }`}
-              >
-                {ing.name}
-              </button>
-            ))}
+            {filtered.map((ing) => {
+              const isSelected = selectedList.some((s) => s.name === ing.name)
+              return (
+                <button
+                  key={ing.name}
+                  onClick={() => handleToggle(ing)}
+                  className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
+                    isSelected
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  {ing.name}
+                </button>
+              )
+            })}
             {filtered.length === 0 && (
               <div className="col-span-3 text-center py-6 text-sm text-gray-400">
                 검색 결과가 없어요
@@ -133,33 +160,43 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
           </div>
         </div>
 
-        {/* ml input (shown when ingredient selected) */}
-        {selected && (
-          <div className="mx-4 mt-1 mb-2 p-3 bg-purple-50 rounded-xl border border-purple-100">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-purple-700 flex-1">{selected.name}</span>
-              <input
-                type="number"
-                placeholder="ml"
-                value={ml}
-                onChange={(e) => setMl(e.target.value)}
-                className="w-20 text-center text-sm border border-purple-200 rounded-lg py-1.5 outline-none focus:border-purple-400"
-                min="1"
-              />
-              <span className="text-xs text-gray-500">ml</span>
-              <button
-                onClick={handleAdd}
-                disabled={!ml}
-                className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-bold disabled:opacity-40 hover:bg-purple-700"
-              >
-                추가
-              </button>
+        {/* Selected list + ml inputs */}
+        {selectedList.length > 0 && (
+          <div className="mx-4 mt-1 p-3 bg-purple-50 rounded-xl border border-purple-100 flex-none">
+            <p className="text-xs font-medium text-purple-700 mb-2">선택한 재료 ({selectedList.length})</p>
+            <div className="space-y-2">
+              {selectedList.map((s) => (
+                <div key={s.name} className="flex items-center gap-2">
+                  <span className="text-sm text-gray-800 flex-1 truncate">{s.name}</span>
+                  <input
+                    type="number"
+                    placeholder="ml"
+                    value={s.ml}
+                    onChange={(e) => handleMlChange(s.name, e.target.value)}
+                    className="w-16 text-center text-sm border border-purple-200 rounded-lg py-1 outline-none focus:border-purple-400"
+                    min="1"
+                  />
+                  <span className="text-xs text-gray-400">ml</span>
+                  <button onClick={() => handleRemoveSelected(s.name)} className="p-0.5 text-gray-300 hover:text-red-400">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
+            <button
+              onClick={handleConfirm}
+              disabled={!hasValidItems}
+              className="mt-3 w-full py-2 bg-purple-600 text-white rounded-xl text-sm font-bold disabled:opacity-40 hover:bg-purple-700"
+            >
+              {MEAL_LABELS[mealKey]}에 추가
+            </button>
           </div>
         )}
 
         {/* Custom ingredient */}
-        <div className="mx-4 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="mx-4 mt-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200 flex-none">
           <p className="text-xs text-gray-500 mb-2 font-medium">목록에 없는 재료 직접 등록</p>
           <div className="flex items-center gap-2">
             <input

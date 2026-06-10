@@ -45,10 +45,10 @@ export default function MealModal({ date, onClose, onSaved }) {
     }))
   }
 
-  function handleAddIngredient(mealKey, ingredient) {
+  function handleAddIngredient(mealKey, ingredients) {
     setMeal((m) => ({
       ...m,
-      [mealKey]: [...m[mealKey], ingredient],
+      [mealKey]: [...m[mealKey], ...ingredients],
     }))
     setAddingTo(null)
   }
