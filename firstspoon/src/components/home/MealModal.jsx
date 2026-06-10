@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getMeal, saveMeal } from '../../utils/storage.js'
+import { getMealContainingDate, saveMeal } from '../../utils/storage.js'
 import IngredientSheet from './IngredientSheet.jsx'
 
 const MEAL_KEYS = ['morning', 'lunch', 'dinner']
@@ -17,10 +17,11 @@ function formatDisplayDate(dateStr) {
 
 export default function MealModal({ date, onClose, onSaved }) {
   const [meal, setMeal] = useState(() => {
-    const existing = getMeal(date)
+    const existing = getMealContainingDate(date)
     return existing || { date, duration: 1, morning: [], lunch: [], dinner: [] }
   })
   const [addingTo, setAddingTo] = useState(null) // 'morning' | 'lunch' | 'dinner'
+  const [editingMl, setEditingMl] = useState(null) // { mealKey, idx }
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -129,29 +130,58 @@ export default function MealModal({ date, onClose, onSaved }) {
                 </div>
 
                 {/* Ingredient rows */}
-                {items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-0"
-                  >
-                    <span
-                      className="text-xs px-1.5 py-0.5 rounded"
-                      style={{ backgroundColor: colors.bg, color: colors.text }}
+                {items.map((item, idx) => {
+                  const isEditingThis = editingMl?.mealKey === mealKey && editingMl?.idx === idx
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-0"
                     >
-                      {item.category}
-                    </span>
-                    <span className="flex-1 text-sm text-gray-800">{item.name}</span>
-                    <span className="text-sm text-gray-500">{item.ml}ml</span>
-                    <button
-                      onClick={() => handleRemoveIngredient(mealKey, idx)}
-                      className="p-1 text-gray-300 hover:text-red-400"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded"
+                        style={{ backgroundColor: colors.bg, color: colors.text }}
+                      >
+                        {item.category}
+                      </span>
+                      <span className="flex-1 text-sm text-gray-800">{item.name}</span>
+                      {isEditingThis ? (
+                        <input
+                          type="number"
+                          defaultValue={item.ml || ''}
+                          autoFocus
+                          min="0"
+                          className="w-16 text-center text-sm border border-purple-300 rounded-lg py-0.5 outline-none focus:border-purple-500"
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value)
+                            setMeal((m) => ({
+                              ...m,
+                              [mealKey]: m[mealKey].map((it, i) =>
+                                i === idx ? { ...it, ml: isNaN(val) ? 0 : val } : it
+                              ),
+                            }))
+                            setEditingMl(null)
+                          }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur() }}
+                        />
+                      ) : (
+                        <span
+                          className="text-sm text-gray-500 cursor-pointer hover:text-purple-600 min-w-[40px] text-right"
+                          onClick={() => setEditingMl({ mealKey, idx })}
+                        >
+                          {item.ml ? `${item.ml}ml` : '-'}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleRemoveIngredient(mealKey, idx)}
+                        className="p-1 text-gray-300 hover:text-red-400"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                })}
 
                 {/* Add button */}
                 <button

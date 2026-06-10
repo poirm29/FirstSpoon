@@ -42,9 +42,8 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
   }
 
   function handleConfirm() {
-    const valid = selectedList.filter((s) => s.ml && parseInt(s.ml) > 0)
-    if (valid.length === 0) return
-    onAdd(valid.map((s) => ({ name: s.name, category: s.category, ml: parseInt(s.ml) })))
+    if (selectedList.length === 0) return
+    onAdd(selectedList.map((s) => ({ name: s.name, category: s.category, ml: s.ml ? parseInt(s.ml) : 0 })))
   }
 
   function handleCustomAdd() {
@@ -65,7 +64,7 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
     return ing.category === category
   })
 
-  const hasValidItems = selectedList.some((s) => s.ml && parseInt(s.ml) > 0)
+  const hasValidItems = selectedList.length > 0
 
   return (
     <>

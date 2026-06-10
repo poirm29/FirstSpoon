@@ -41,6 +41,22 @@ export function getMeal(dateStr) {
   }
 }
 
+// Find the meal that covers dateStr (either directly or via duration)
+export function getMealContainingDate(dateStr) {
+  const direct = getMeal(dateStr)
+  if (direct) return direct
+
+  const target = new Date(dateStr)
+  for (let i = 1; i <= 30; i++) {
+    const checkDate = new Date(target)
+    checkDate.setDate(checkDate.getDate() - i)
+    const checkStr = formatDate(checkDate)
+    const meal = getMeal(checkStr)
+    if (meal && meal.duration > i) return meal
+  }
+  return null
+}
+
 export function saveMeal(meal) {
   localStorage.setItem(MEAL_PREFIX + meal.date, JSON.stringify(meal))
 }

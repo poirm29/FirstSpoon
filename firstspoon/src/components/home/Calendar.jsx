@@ -231,7 +231,7 @@ export default function Calendar({ onDateSelect }) {
                         <button
                           key={ds + mealKey}
                           onClick={() => onDateSelect(ds)}
-                          className="h-[18px]"
+                          className="h-[22px]"
                         />
                       )
                     }
@@ -240,7 +240,7 @@ export default function Calendar({ onDateSelect }) {
                       <button
                         key={ds + mealKey}
                         onClick={() => onDateSelect(ds)}
-                        className="h-[18px] relative"
+                        className="h-[22px] relative overflow-hidden"
                         style={{
                           backgroundColor: colors.bg,
                           borderRadius: strip.isDisplayStart && strip.isDisplayEnd
@@ -254,8 +254,8 @@ export default function Calendar({ onDateSelect }) {
                       >
                         {strip.label && (
                           <span
-                            className="absolute inset-0 flex items-center px-1 text-[9px] font-medium truncate"
-                            style={{ color: colors.text }}
+                            className="absolute inset-0 flex items-center px-1 text-[10px] font-medium leading-none"
+                            style={{ color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                           >
                             {strip.label}
                           </span>
