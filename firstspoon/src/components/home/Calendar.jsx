@@ -84,23 +84,18 @@ function buildStrips(meals, weeks, year, month) {
         const isDisplayStart = isAbsoluteStart || isWeekStart
         const isDisplayEnd = isAbsoluteEnd || isWeekEnd
 
-        // Label: ingredient abbreviation at display start
-        let label = ''
-        if (isDisplayStart) {
-          const items = meal[mealKey] || []
-          if (items.length > 0) {
-            // Show first ingredient name abbreviated
-            const firstName = items[0].name
-            const abbr = firstName.length > 2 ? firstName.slice(0, 2) : firstName
-            const suffix = items.length > 1 ? `·${items[1].name.slice(0, 1)}` : ''
-            label = abbr + suffix
-          }
+        const items = meal[mealKey] || []
+        let startLabel = ''
+        let endLabel = ''
+
+        if (isDisplayStart && items.length > 0) {
+          const abbr = items[0].name.length > 2 ? items[0].name.slice(0, 2) : items[0].name
+          const suffix = items.length > 1 ? `·${items[1].name.slice(0, 1)}` : ''
+          startLabel = abbr + suffix
         }
         if (isDisplayEnd) {
-          // Show total ml
-          const items = meal[mealKey] || []
           const total = items.reduce((s, i) => s + (i.ml || 0), 0)
-          if (total > 0) label = (label ? label + ' ' : '') + `${total}ml`
+          if (total > 0) endLabel = `${total}ml`
         }
 
         if (!strips[ds]) strips[ds] = {}
@@ -108,7 +103,8 @@ function buildStrips(meals, weeks, year, month) {
           active: true,
           isDisplayStart,
           isDisplayEnd,
-          label,
+          startLabel,
+          endLabel,
         }
       })
     })
@@ -240,7 +236,7 @@ export default function Calendar({ onDateSelect }) {
                       <button
                         key={ds + mealKey}
                         onClick={() => onDateSelect(ds)}
-                        className="h-[22px] relative overflow-hidden"
+                        className="h-[22px] relative"
                         style={{
                           backgroundColor: colors.bg,
                           borderRadius: strip.isDisplayStart && strip.isDisplayEnd
@@ -252,12 +248,34 @@ export default function Calendar({ onDateSelect }) {
                             : '0',
                         }}
                       >
-                        {strip.label && (
+                        {strip.startLabel && (
                           <span
-                            className="absolute inset-0 flex items-center px-1 text-[10px] font-medium leading-none"
-                            style={{ color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            className="absolute text-[10px] font-medium"
+                            style={{
+                              color: colors.text,
+                              left: '3px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              whiteSpace: 'nowrap',
+                              zIndex: 2,
+                            }}
                           >
-                            {strip.label}
+                            {strip.startLabel}
+                          </span>
+                        )}
+                        {strip.endLabel && (
+                          <span
+                            className="absolute text-[10px] font-medium"
+                            style={{
+                              color: colors.text,
+                              right: '3px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              whiteSpace: 'nowrap',
+                              zIndex: 2,
+                            }}
+                          >
+                            {strip.endLabel}
                           </span>
                         )}
                       </button>
