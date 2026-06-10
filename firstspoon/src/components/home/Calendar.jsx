@@ -89,9 +89,21 @@ function buildStrips(meals, weeks, year, month) {
         let endLabel = ''
 
         if (isDisplayStart && items.length > 0) {
-          const abbr = items[0].name.length > 2 ? items[0].name.slice(0, 2) : items[0].name
-          const suffix = items.length > 1 ? `·${items[1].name.slice(0, 1)}` : ''
-          startLabel = abbr + suffix
+          // Show full ingredient names, trim with "외 N가지" based on estimated space
+          const maxChars = Math.max(4, duration * 4)
+          const shown = []
+          let charCount = 0
+          for (const item of items) {
+            const add = shown.length > 0 ? 1 + item.name.length : item.name.length
+            if (charCount + add <= maxChars) {
+              shown.push(item.name)
+              charCount += add
+            } else break
+          }
+          startLabel = shown.join('·')
+          if (shown.length < items.length) {
+            startLabel += ` 외 ${items.length - shown.length}가지`
+          }
         }
         if (isDisplayEnd) {
           const total = items.reduce((s, i) => s + (i.ml || 0), 0)
