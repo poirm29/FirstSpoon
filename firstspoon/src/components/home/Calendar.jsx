@@ -215,74 +215,79 @@ export default function Calendar({ onDateSelect }) {
               </div>
 
               {/* Meal strips */}
-              {MEAL_KEYS.map((mealKey) => (
-                <div key={mealKey} className="grid grid-cols-7 mb-0.5">
-                  {week.map((day, di) => {
-                    const ds = formatDate(day)
-                    const strip = strips[ds]?.[mealKey]
-                    const colors = MEAL_COLORS[mealKey]
-
-                    if (!strip?.active) {
-                      return (
-                        <button
-                          key={ds + mealKey}
-                          onClick={() => onDateSelect(ds)}
-                          className="h-[22px]"
-                        />
-                      )
+              {MEAL_KEYS.map((mealKey) => {
+                const colors = MEAL_COLORS[mealKey]
+                // Compute strip ranges within this week for overlay labels
+                const ranges = []
+                let cur = null
+                week.forEach((day, col) => {
+                  const ds = formatDate(day)
+                  const strip = strips[ds]?.[mealKey]
+                  if (strip?.active) {
+                    if (strip.isDisplayStart || !cur) {
+                      if (cur) ranges.push(cur)
+                      cur = { startCol: col, endCol: col, startLabel: strip.startLabel, endLabel: strip.endLabel }
+                    } else {
+                      cur.endCol = col
+                      if (strip.endLabel) cur.endLabel = strip.endLabel
                     }
+                  } else {
+                    if (cur) { ranges.push(cur); cur = null }
+                  }
+                })
+                if (cur) ranges.push(cur)
 
-                    return (
-                      <button
-                        key={ds + mealKey}
-                        onClick={() => onDateSelect(ds)}
-                        className="h-[22px] relative"
+                return (
+                  <div key={mealKey} className="relative mb-0.5" style={{ height: '22px' }}>
+                    {/* Cell backgrounds */}
+                    <div className="grid grid-cols-7 h-full">
+                      {week.map((day, di) => {
+                        const ds = formatDate(day)
+                        const strip = strips[ds]?.[mealKey]
+                        if (!strip?.active) {
+                          return <button key={ds + mealKey} onClick={() => onDateSelect(ds)} className="h-full" />
+                        }
+                        return (
+                          <button
+                            key={ds + mealKey}
+                            onClick={() => onDateSelect(ds)}
+                            className="h-full"
+                            style={{
+                              backgroundColor: colors.bg,
+                              borderRadius: strip.isDisplayStart && strip.isDisplayEnd
+                                ? '4px'
+                                : strip.isDisplayStart ? '4px 0 0 4px'
+                                : strip.isDisplayEnd ? '0 4px 4px 0'
+                                : '0',
+                            }}
+                          />
+                        )
+                      })}
+                    </div>
+                    {/* Label overlays spanning full strip width */}
+                    {ranges.map((range, ri) => (
+                      <div
+                        key={ri}
+                        className="absolute top-0 h-full flex items-center justify-between pointer-events-none"
                         style={{
-                          backgroundColor: colors.bg,
-                          borderRadius: strip.isDisplayStart && strip.isDisplayEnd
-                            ? '4px'
-                            : strip.isDisplayStart
-                            ? '4px 0 0 4px'
-                            : strip.isDisplayEnd
-                            ? '0 4px 4px 0'
-                            : '0',
+                          left: `${(range.startCol / 7) * 100}%`,
+                          width: `${((range.endCol - range.startCol + 1) / 7) * 100}%`,
+                          padding: '0 4px',
                         }}
                       >
-                        {strip.startLabel && (
-                          <span
-                            className="absolute text-[10px] font-medium"
-                            style={{
-                              color: colors.text,
-                              left: '3px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              whiteSpace: 'nowrap',
-                              zIndex: 2,
-                            }}
-                          >
-                            {strip.startLabel}
+                        <span className="text-[10px] font-medium truncate" style={{ color: colors.text }}>
+                          {range.startLabel}
+                        </span>
+                        {range.endLabel && (
+                          <span className="text-[10px] font-medium ml-1 flex-none" style={{ color: colors.text }}>
+                            {range.endLabel}
                           </span>
                         )}
-                        {strip.endLabel && (
-                          <span
-                            className="absolute text-[10px] font-medium"
-                            style={{
-                              color: colors.text,
-                              right: '3px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              whiteSpace: 'nowrap',
-                              zIndex: 2,
-                            }}
-                          >
-                            {strip.endLabel}
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              ))}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
             </div>
           )
         })}
