@@ -3,51 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import ChatBubble from './ChatBubble.jsx'
 import { getRecentMeals, saveMeal, formatDate } from '../../utils/storage.js'
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-
 const QUICK_REPLIES = ['추천해줘', '어제랑 겹치지 않게 해줘', '간단하게 해줘']
 
-const SYSTEM_PROMPT = (recentMealsStr) => `당신은 한국의 이유식 전문가입니다.
-아기의 건강한 성장을 위한 이유식 식단을 추천해주세요.
-
-규칙:
-1. 재료는 아기에게 안전하고 영양가 있는 것으로 추천
-2. 하루 세끼(아침/점심/저녁) 모두 추천
-3. 각 끼니당 2-4가지 재료, ml 단위로 양 지정
-4. 추천 결과는 반드시 아래 JSON 형식 포함:
-\`\`\`json
-{
-  "morning": [{"name": "재료명", "category": "카테고리", "ml": 숫자}],
-  "lunch": [{"name": "재료명", "category": "카테고리", "ml": 숫자}],
-  "dinner": [{"name": "재료명", "category": "카테고리", "ml": 숫자}]
-}
-\`\`\`
-5. JSON 앞뒤로 자연스러운 설명 추가
-6. 카테고리는 곡류/채소/육류/과일/기타 중 하나
-
-최근 1개월 식단 기록:
-${recentMealsStr || '(아직 기록된 식단이 없습니다)'}
-`
-
-async function callAnthropicAPI(messages, recentMealsStr) {
-  if (!API_KEY) {
-    return getMockResponse(messages)
-  }
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+async function callChatAPI(messages, recentMealsStr) {
+  const response = await fetch('/api/chat', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-client-side-allow-unsafe': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT(recentMealsStr),
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, recentMealsStr }),
   })
 
   if (!response.ok) {
@@ -55,42 +17,7 @@ async function callAnthropicAPI(messages, recentMealsStr) {
   }
 
   const data = await response.json()
-  return data.content[0].text
-}
-
-function getMockResponse(messages) {
-  const lastMsg = messages[messages.length - 1]?.content || ''
-  const hasRecommendRequest =
-    lastMsg.includes('추천') || lastMsg.includes('간단') || lastMsg.includes('겹치')
-
-  if (!hasRecommendRequest) {
-    return '안녕하세요! 오늘 이유식 식단을 추천해드릴까요? 😊'
-  }
-
-  return `오늘의 이유식 식단을 추천해드릴게요! 🌱
-
-\`\`\`json
-{
-  "morning": [
-    {"name": "쌀", "category": "곡류", "ml": 60},
-    {"name": "당근", "category": "채소", "ml": 30},
-    {"name": "소고기", "category": "육류", "ml": 20}
-  ],
-  "lunch": [
-    {"name": "찹쌀", "category": "곡류", "ml": 60},
-    {"name": "애호박", "category": "채소", "ml": 30},
-    {"name": "닭고기", "category": "육류", "ml": 20},
-    {"name": "사과", "category": "과일", "ml": 20}
-  ],
-  "dinner": [
-    {"name": "오트밀", "category": "곡류", "ml": 50},
-    {"name": "브로콜리", "category": "채소", "ml": 25},
-    {"name": "계란노른자", "category": "육류", "ml": 15}
-  ]
-}
-\`\`\`
-
-균형 잡힌 식단이에요. 소고기는 철분 보충에 좋고, 당근과 브로콜리는 비타민이 풍부해요! 😊`
+  return data.text
 }
 
 function parseRecommendation(text) {
@@ -165,7 +92,7 @@ export default function AIScreen() {
     setLoading(true)
 
     try {
-      const responseText = await callAnthropicAPI(apiMessages, recentMealsStr.current)
+      const responseText = await callChatAPI(apiMessages, recentMealsStr.current)
       const recommendation = parseRecommendation(responseText)
 
       // Strip JSON block from display text
