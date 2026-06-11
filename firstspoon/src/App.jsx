@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import HomeScreen from './components/home/HomeScreen.jsx'
 import AIScreen from './components/ai/AIScreen.jsx'
 import TabBar from './components/TabBar.jsx'
@@ -8,7 +8,7 @@ export default function App() {
     <div className="flex flex-col h-screen">
       <div className="flex-1 overflow-hidden">
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/" element={<HomeScreen />} />
           <Route path="/home" element={<HomeScreen />} />
           <Route path="/ai" element={<AIScreen />} />
         </Routes>
