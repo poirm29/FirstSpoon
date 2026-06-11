@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: SYSTEM_PROMPT(recentMealsStr) }] },
         contents,
-        generationConfig: { maxOutputTokens: 1024 },
+        generationConfig: { maxOutputTokens: 4096 },
       }),
     }
   )
