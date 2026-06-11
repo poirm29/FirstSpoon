@@ -7,7 +7,16 @@ const MEAL_COLORS = {
   dinner: { bg: '#EEEDFE', text: '#3C3489' },
 }
 
-const MEAL_LABELS = { morning: '아침', lunch: '점심', dinner: '저녁' }
+const MEAL_LABELS = { morning: '한끼', lunch: '두끼', dinner: '세끼' }
+
+const ABBR = {
+  '오트밀': '오트', '퀴노아': '퀴노',
+  '고구마': '고구', '브로콜리': '브로콜', '애호박': '애호', '시금치': '시금',
+  '완두콩': '완두', '파프리카': '파프', '청경채': '청경',
+  '소고기': '소고', '닭고기': '닭고', '돼지고기': '돼지', '닭안심': '닭안',
+  '흰살생선(대구)': '대구', '흰살생선(가자미)': '가자미', '계란노른자': '노른자',
+  '바나나': '바나', '복숭아': '복숭', '블루베리': '블루', '아보카도': '아보',
+}
 const MEAL_KEYS = ['morning', 'lunch', 'dinner']
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -89,14 +98,15 @@ function buildStrips(meals, weeks, year, month) {
         let endLabel = ''
 
         if (isDisplayStart && items.length > 0) {
-          // Show full ingredient names, trim with "외 N가지" based on estimated space
+          const shortName = (name) => ABBR[name] ?? name
           const maxChars = Math.max(4, duration * 4)
           const shown = []
           let charCount = 0
           for (const item of items) {
-            const add = shown.length > 0 ? 1 + item.name.length : item.name.length
+            const sn = shortName(item.name)
+            const add = shown.length > 0 ? 1 + sn.length : sn.length
             if (charCount + add <= maxChars) {
-              shown.push(item.name)
+              shown.push(sn)
               charCount += add
             } else break
           }
@@ -193,7 +203,7 @@ export default function Calendar({ onDateSelect }) {
         {weeks.map((week, wi) => {
           const weekKey = `${year}-${month}-w${wi}`
           return (
-            <div key={weekKey} className="border-b border-gray-50">
+            <div key={weekKey} className="border-b-2 border-gray-100">
               {/* Date row */}
               <div className="grid grid-cols-7">
                 {week.map((day, di) => {
@@ -227,6 +237,7 @@ export default function Calendar({ onDateSelect }) {
               </div>
 
               {/* Meal strips */}
+              <div className="px-1 pt-0.5 pb-2">
               {MEAL_KEYS.map((mealKey) => {
                 const colors = MEAL_COLORS[mealKey]
                 // Compute strip ranges within this week for overlay labels
@@ -250,7 +261,7 @@ export default function Calendar({ onDateSelect }) {
                 if (cur) ranges.push(cur)
 
                 return (
-                  <div key={mealKey} className="relative mb-0.5" style={{ height: '22px' }}>
+                  <div key={mealKey} className="relative mb-1" style={{ height: '20px' }}>
                     {/* Cell backgrounds */}
                     <div className="grid grid-cols-7 h-full">
                       {week.map((day, di) => {
@@ -300,6 +311,7 @@ export default function Calendar({ onDateSelect }) {
                   </div>
                 )
               })}
+              </div>
             </div>
           )
         })}

@@ -57,9 +57,9 @@ function formatMealsForContext(meals) {
   return meals
     .map((m) => {
       const lines = [`날짜: ${m.date} (${m.duration || 1}일간)`]
-      if (m.morning?.length) lines.push(`  아침: ${m.morning.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
-      if (m.lunch?.length) lines.push(`  점심: ${m.lunch.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
-      if (m.dinner?.length) lines.push(`  저녁: ${m.dinner.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
+      if (m.morning?.length) lines.push(`  한끼: ${m.morning.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
+      if (m.lunch?.length) lines.push(`  두끼: ${m.lunch.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
+      if (m.dinner?.length) lines.push(`  세끼: ${m.dinner.map((i) => `${i.name} ${i.ml}ml`).join(', ')}`)
       return lines.join('\n')
     })
     .join('\n\n')

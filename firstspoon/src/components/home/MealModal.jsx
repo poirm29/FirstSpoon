@@ -3,7 +3,7 @@ import { getMealContainingDate, saveMeal } from '../../utils/storage.js'
 import IngredientSheet from './IngredientSheet.jsx'
 
 const MEAL_KEYS = ['morning', 'lunch', 'dinner']
-const MEAL_LABELS = { morning: '아침', lunch: '점심', dinner: '저녁' }
+const MEAL_LABELS = { morning: '한끼', lunch: '두끼', dinner: '세끼' }
 const MEAL_COLORS = {
   morning: { bg: '#FAEEDA', text: '#633806', border: '#F0C896' },
   lunch: { bg: '#E1F5EE', text: '#085041', border: '#A7DFC7' },

@@ -20,6 +20,7 @@ export const DEFAULT_INGREDIENTS = [
   { name: '비트', category: '채소', isDefault: true },
   { name: '청경채', category: '채소', isDefault: true },
   { name: '배추', category: '채소', isDefault: true },
+  { name: '가지', category: '채소', isDefault: true },
 
   // 육류
   { name: '소고기', category: '육류', isDefault: true },
