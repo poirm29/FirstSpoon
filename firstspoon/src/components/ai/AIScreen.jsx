@@ -5,6 +5,12 @@ import { getRecentMeals, saveMeal, formatDate } from '../../utils/storage.js'
 
 const QUICK_REPLIES = ['추천해줘', '어제랑 겹치지 않게 해줘', '간단하게 해줘']
 
+const FALLBACK_MESSAGES = [
+  '다른 어머님 아버님 식단을 만들어드리기 위해 출장중이에요! 🧳 잠시 후 다시 물어봐주세요',
+  '잠깐 재료 사러 시장에 다녀올게요! 🥬 조금 뒤에 다시 시도해주세요',
+  '오늘 너무 많은 아기들의 식단을 짜느라 잠깐 쉬는 중이에요 😅 다시 시도해주세요',
+]
+
 async function callChatAPI(messages, recentMealsStr) {
   const response = await fetch('/api/chat', {
     method: 'POST',
@@ -18,6 +24,22 @@ async function callChatAPI(messages, recentMealsStr) {
 
   const data = await response.json()
   return data.text
+}
+
+async function callChatAPIWithRetry(messages, recentMealsStr, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs
+  const retryDelay = 3000
+
+  while (Date.now() < deadline) {
+    try {
+      return await callChatAPI(messages, recentMealsStr)
+    } catch {
+      const remaining = deadline - Date.now()
+      if (remaining <= 0) break
+      await new Promise((r) => setTimeout(r, Math.min(retryDelay, remaining)))
+    }
+  }
+  return null
 }
 
 function parseRecommendation(text) {
@@ -92,10 +114,15 @@ export default function AIScreen() {
     setLoading(true)
 
     try {
-      const responseText = await callChatAPI(apiMessages, recentMealsStr.current)
-      const recommendation = parseRecommendation(responseText)
+      const responseText = await callChatAPIWithRetry(apiMessages, recentMealsStr.current)
 
-      // Strip JSON block from display text
+      if (!responseText) {
+        const fallback = FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)]
+        setMessages((prev) => [...prev, { id: Date.now() + 1, role: 'assistant', type: 'text', content: fallback }])
+        return
+      }
+
+      const recommendation = parseRecommendation(responseText)
       const displayText = responseText.replace(/```json[\s\S]*?```/g, '').trim()
 
       const aiMsg = {
@@ -110,16 +137,9 @@ export default function AIScreen() {
 
       setMessages((prev) => [...prev, aiMsg])
       if (recommendation) setLastRecommendation(recommendation)
-    } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          role: 'assistant',
-          type: 'text',
-          content: `죄송해요, 오류가 발생했어요. (${err.message})`,
-        },
-      ])
+    } catch {
+      const fallback = FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)]
+      setMessages((prev) => [...prev, { id: Date.now() + 1, role: 'assistant', type: 'text', content: fallback }])
     } finally {
       setLoading(false)
     }
