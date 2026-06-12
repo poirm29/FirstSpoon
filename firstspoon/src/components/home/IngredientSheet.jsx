@@ -213,7 +213,6 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
               value={customMl}
               onChange={(e) => setCustomMl(e.target.value)}
               className="w-16 text-center text-sm border border-gray-200 rounded-lg py-1.5 outline-none focus:border-purple-400"
-              min="1"
             />
             <span className="text-xs text-gray-400">ml</span>
             <button
