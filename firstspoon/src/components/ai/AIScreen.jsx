@@ -72,6 +72,7 @@ export default function AIScreen() {
   const [loading, setLoading] = useState(false)
   const [lastRecommendation, setLastRecommendation] = useState(null)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [saveDialogVisible, setSaveDialogVisible] = useState(false)
   const [saveDate, setSaveDate] = useState(formatDate(new Date()))
   const [saveDuration, setSaveDuration] = useState(1)
   const bottomRef = useRef(null)
@@ -96,6 +97,15 @@ export default function AIScreen() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
+
+  useEffect(() => {
+    if (showSaveDialog) requestAnimationFrame(() => setSaveDialogVisible(true))
+  }, [showSaveDialog])
+
+  function closeSaveDialog() {
+    setSaveDialogVisible(false)
+    setTimeout(() => setShowSaveDialog(false), 280)
+  }
 
   async function sendMessage(text) {
     if (!text.trim() || loading) return
@@ -158,8 +168,8 @@ export default function AIScreen() {
       dinner: lastRecommendation.dinner || [],
     }
     saveMeal(meal)
-    setShowSaveDialog(false)
-    navigate('/home')
+    closeSaveDialog()
+    setTimeout(() => navigate('/home'), 280)
   }
 
   return (
@@ -258,17 +268,31 @@ export default function AIScreen() {
         </div>
       </div>
 
-      {/* Save dialog */}
+      {/* Save dialog - bottom sheet */}
       {showSaveDialog && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
-            onClick={() => setShowSaveDialog(false)}
+            className="fixed inset-0 bg-black transition-opacity duration-300 z-40"
+            style={{ opacity: saveDialogVisible ? 0.4 : 0 }}
+            onClick={closeSaveDialog}
           />
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-5 z-50 w-72">
-            <h3 className="text-sm font-bold text-gray-800 mb-4">식단 기록 저장</h3>
+          <div
+            className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-w-md mx-auto"
+            style={{ transform: saveDialogVisible ? 'translateY(0)' : 'translateY(100%)' }}
+          >
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
+            </div>
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-800">식단 기록 저장</h3>
+              <button onClick={closeSaveDialog} className="p-1 text-gray-400 hover:text-gray-600">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
 
-            <div className="space-y-3">
+            <div className="px-4 py-4 space-y-4">
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1 block">날짜</label>
                 <input
@@ -283,32 +307,31 @@ export default function AIScreen() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSaveDuration((d) => Math.max(1, d - 1))}
-                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600"
+                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200"
                   >
                     −
                   </button>
-                  <span className="w-8 text-center font-bold text-gray-800">{saveDuration}</span>
+                  <span className="w-8 text-center text-sm font-bold text-gray-800">{saveDuration}일</span>
                   <button
-                    onClick={() => setSaveDuration((d) => d + 1)}
-                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600"
+                    onClick={() => setSaveDuration((d) => Math.min(10, d + 1))}
+                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-600 hover:bg-gray-200"
                   >
                     +
                   </button>
-                  <span className="text-sm text-gray-500">일</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="px-4 pb-6 flex gap-2">
               <button
-                onClick={() => setShowSaveDialog(false)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 font-medium"
+                onClick={closeSaveDialog}
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm text-gray-600 font-medium"
               >
                 취소
               </button>
               <button
                 onClick={handleSaveRecommendation}
-                className="flex-1 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700"
+                className="flex-1 py-3 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700"
               >
                 확인
               </button>
