@@ -101,6 +101,16 @@ export function getMealsForMonth(year, month) {
     if (meal) meals[dateStr] = meal
   }
 
+  // 이전 달 말미에서 이번 달로 걸치는 식단 포함 (최대 duration-1 = 9일 전까지)
+  const monthStart = new Date(year, month - 1, 1)
+  for (let i = 1; i <= 9; i++) {
+    const checkDate = new Date(monthStart)
+    checkDate.setDate(checkDate.getDate() - i)
+    const dateStr = formatDate(checkDate)
+    const meal = getMeal(dateStr)
+    if (meal && meal.duration > i) meals[dateStr] = meal
+  }
+
   return meals
 }
 
