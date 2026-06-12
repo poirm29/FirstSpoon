@@ -135,7 +135,7 @@ export default function AIScreen() {
       const parsed = parseRecommendation(responseText)
       const isFullRecommendation = !!(parsed?.morning || parsed?.lunch || parsed?.dinner)
       const recommendation = isFullRecommendation ? parsed : null
-      const quickReplies = !isFullRecommendation ? (parsed?.quickReplies || null) : null
+      const quickReplies = parsed?.quickReplies || null
       const displayText = responseText.replace(/```json[\s\S]*?```/g, '').trim()
 
       const aiMsg = {
@@ -208,18 +208,12 @@ export default function AIScreen() {
 
             {/* Save actions */}
             {msg.showSaveActions && !loading && (
-              <div className="flex gap-2 ml-10 mb-3">
+              <div className="flex gap-2 ml-10 mb-1">
                 <button
                   onClick={() => setShowSaveDialog(true)}
                   className="px-3 py-1.5 bg-purple-600 text-white rounded-full text-xs font-bold hover:bg-purple-700"
                 >
                   이대로 기록할게요
-                </button>
-                <button
-                  onClick={() => sendMessage('다른 메뉴 추천해줘')}
-                  className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium hover:bg-gray-50"
-                >
-                  다른 메뉴 추천해줘
                 </button>
               </div>
             )}
