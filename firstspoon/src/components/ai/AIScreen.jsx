@@ -26,7 +26,7 @@ async function callChatAPI(messages, recentMealsStr) {
   return data.text
 }
 
-async function callChatAPIWithRetry(messages, recentMealsStr, timeoutMs = 10000) {
+async function callChatAPIWithRetry(messages, recentMealsStr, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs
   const retryDelay = 3000
 
