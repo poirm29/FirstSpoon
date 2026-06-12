@@ -55,6 +55,8 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
       if (exists) return prev
       return [...prev, { name: customName.trim(), category: '기타', ml: customMl }]
     })
+    setSearch('')
+    setCategory('기타')
     setCustomName('')
     setCustomMl('')
   }
