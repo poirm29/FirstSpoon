@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getMealContainingDate, saveMeal } from '../../utils/storage.js'
+import { getMealContainingDate, saveMeal, deleteMeal } from '../../utils/storage.js'
 import IngredientSheet from './IngredientSheet.jsx'
 
 const MEAL_KEYS = ['morning', 'lunch', 'dinner']
@@ -20,8 +20,10 @@ export default function MealModal({ date, onClose, onSaved }) {
     const existing = getMealContainingDate(date)
     return existing || { date, duration: 1, morning: [], lunch: [], dinner: [] }
   })
+  const [isExisting] = useState(() => !!getMealContainingDate(date))
   const [addingTo, setAddingTo] = useState(null) // 'morning' | 'lunch' | 'dinner'
   const [editingMl, setEditingMl] = useState(null) // { mealKey, idx }
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -56,6 +58,12 @@ export default function MealModal({ date, onClose, onSaved }) {
 
   function handleSave() {
     saveMeal(meal)
+    setVisible(false)
+    setTimeout(onSaved, 280)
+  }
+
+  function handleDelete() {
+    deleteMeal(meal.date)
     setVisible(false)
     setTimeout(onSaved, 280)
   }
@@ -199,7 +207,7 @@ export default function MealModal({ date, onClose, onSaved }) {
         </div>
 
         {/* Save button */}
-        <div className="px-4 py-3 border-t border-gray-100">
+        <div className="px-4 pt-3 pb-1 border-t border-gray-100">
           <button
             onClick={handleSave}
             className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 active:bg-purple-800"
@@ -207,6 +215,36 @@ export default function MealModal({ date, onClose, onSaved }) {
             저장하기
           </button>
         </div>
+
+        {/* Delete button - existing records only */}
+        {isExisting && (
+          <div className="px-4 pb-3">
+            {!showDeleteConfirm ? (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-2 text-sm text-red-400 font-medium"
+              >
+                식단 지우기
+              </button>
+            ) : (
+              <div className="flex items-center justify-center gap-3 py-1.5">
+                <span className="text-sm text-gray-500">정말 지울까요?</span>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-3 py-1.5 text-xs text-white bg-red-400 rounded-lg font-bold"
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Ingredient Sheet */}
