@@ -47,7 +47,7 @@ export function getMealContainingDate(dateStr) {
   if (direct) return direct
 
   const target = new Date(dateStr)
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 1; i <= 10; i++) {
     const checkDate = new Date(target)
     checkDate.setDate(checkDate.getDate() - i)
     const checkStr = formatDate(checkDate)

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getIngredients, addCustomIngredient } from '../../utils/storage.js'
 import { CATEGORIES } from '../../data/ingredients.js'
 
-const MEAL_LABELS = { morning: '아침', lunch: '점심', dinner: '저녁' }
+const MEAL_LABELS = { morning: '한끼', lunch: '두끼', dinner: '세끼' }
 
 export default function IngredientSheet({ mealKey, onAdd, onClose }) {
   const [ingredients, setIngredients] = useState([])

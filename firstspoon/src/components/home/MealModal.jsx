@@ -106,7 +106,7 @@ export default function MealModal({ date, onClose, onSaved }) {
             </button>
             <span className="w-8 text-center text-sm font-bold text-gray-800">{meal.duration}일</span>
             <button
-              onClick={() => setMeal((m) => ({ ...m, duration: m.duration + 1 }))}
+              onClick={() => setMeal((m) => ({ ...m, duration: Math.min(10, m.duration + 1) }))}
               className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold hover:bg-gray-200"
             >
               +

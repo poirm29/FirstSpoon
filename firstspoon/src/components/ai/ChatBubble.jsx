@@ -30,9 +30,9 @@ function RecommendationCard({ message }) {
   if (!recommendation) return null
 
   const meals = [
-    { key: 'morning', label: '아침', bg: '#FAEEDA', text: '#633806', items: recommendation.morning || [] },
-    { key: 'lunch', label: '점심', bg: '#E1F5EE', text: '#085041', items: recommendation.lunch || [] },
-    { key: 'dinner', label: '저녁', bg: '#EEEDFE', text: '#3C3489', items: recommendation.dinner || [] },
+    { key: 'morning', label: '한끼', bg: '#FAEEDA', text: '#633806', items: recommendation.morning || [] },
+    { key: 'lunch', label: '두끼', bg: '#E1F5EE', text: '#085041', items: recommendation.lunch || [] },
+    { key: 'dinner', label: '세끼', bg: '#EEEDFE', text: '#3C3489', items: recommendation.dinner || [] },
   ]
 
   return (
