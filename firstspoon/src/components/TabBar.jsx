@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 
 function HomeIcon({ active }) {
   return (
@@ -38,23 +38,20 @@ function AIIcon({ active }) {
 }
 
 export default function TabBar() {
+  const { pathname } = useLocation()
+  const isHomeActive = pathname === '/' || pathname === '/home'
+
   return (
     <nav className="flex-none border-t border-gray-100 bg-white safe-area-bottom">
       <div className="flex">
         <NavLink
           to="/home"
-          className={({ isActive }) =>
-            `flex-1 flex flex-col items-center py-2 gap-0.5 ${
-              isActive ? 'text-purple-700' : 'text-gray-400'
-            }`
-          }
+          className={`flex-1 flex flex-col items-center py-2 gap-0.5 ${
+            isHomeActive ? 'text-purple-700' : 'text-gray-400'
+          }`}
         >
-          {({ isActive }) => (
-            <>
-              <HomeIcon active={isActive} />
-              <span className="text-xs font-medium">홈</span>
-            </>
-          )}
+          <HomeIcon active={isHomeActive} />
+          <span className="text-xs font-medium">홈</span>
         </NavLink>
 
         <NavLink
