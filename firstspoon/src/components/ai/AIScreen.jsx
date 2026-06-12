@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import ChatBubble from './ChatBubble.jsx'
 import { getRecentMeals, saveMeal, formatDate } from '../../utils/storage.js'
 
-const QUICK_REPLIES = ['추천해줘', '어제랑 겹치지 않게 해줘', '간단하게 해줘']
+const INITIAL_QUICK_REPLIES = ['추천해줘', '어제랑 겹치지 않게 해줘', '간단하게 해줘']
 
 const FALLBACK_MESSAGES = [
   '다른 어머님 아버님 식단을 만들어드리기 위해 출장중이에요! 🧳 잠시 후 다시 물어봐주세요',
@@ -88,7 +88,7 @@ export default function AIScreen() {
         role: 'assistant',
         type: 'text',
         content: '안녕하세요! 오늘 이유식 식단을 추천해드릴까요? 🥄',
-        showQuickReplies: true,
+        quickReplies: INITIAL_QUICK_REPLIES,
       },
     ])
   }, [])
@@ -122,17 +122,20 @@ export default function AIScreen() {
         return
       }
 
-      const recommendation = parseRecommendation(responseText)
+      const parsed = parseRecommendation(responseText)
+      const isFullRecommendation = !!(parsed?.morning || parsed?.lunch || parsed?.dinner)
+      const recommendation = isFullRecommendation ? parsed : null
+      const quickReplies = !isFullRecommendation ? (parsed?.quickReplies || null) : null
       const displayText = responseText.replace(/```json[\s\S]*?```/g, '').trim()
 
       const aiMsg = {
         id: Date.now() + 1,
         role: 'assistant',
-        type: recommendation ? 'recommendation' : 'text',
+        type: isFullRecommendation ? 'recommendation' : 'text',
         content: displayText || '식단을 추천해드렸어요!',
         recommendation,
-        showQuickReplies: !recommendation,
-        showSaveActions: !!recommendation,
+        quickReplies,
+        showSaveActions: isFullRecommendation,
       }
 
       setMessages((prev) => [...prev, aiMsg])
@@ -179,9 +182,9 @@ export default function AIScreen() {
             <ChatBubble message={msg} />
 
             {/* Quick replies */}
-            {msg.showQuickReplies && !loading && (
+            {msg.quickReplies?.length > 0 && !loading && (
               <div className="flex flex-wrap gap-2 ml-10 mb-3">
-                {QUICK_REPLIES.map((reply) => (
+                {msg.quickReplies.map((reply) => (
                   <button
                     key={reply}
                     onClick={() => sendMessage(reply)}
