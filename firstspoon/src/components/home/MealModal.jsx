@@ -95,11 +95,23 @@ export default function MealModal({ date, onClose, onSaved }) {
           <h2 className="text-base font-bold text-gray-800">
             {formatDisplayDate(date)} 식단
           </h2>
-          <button onClick={handleClose} className="p-1 text-gray-400 hover:text-gray-600">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            {isExisting && (
+              <button
+                onClick={() => setShowDeleteConfirm((v) => !v)}
+                className="p-1 text-gray-300 hover:text-red-400"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M3 5H15M7 5V3H11V5M6 5V14H12V5H6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
+            <button onClick={handleClose} className="p-1 text-gray-400 hover:text-gray-600">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Duration */}
@@ -216,33 +228,22 @@ export default function MealModal({ date, onClose, onSaved }) {
           </button>
         </div>
 
-        {/* Delete button - existing records only */}
-        {isExisting && (
-          <div className="px-4 pb-3">
-            {!showDeleteConfirm ? (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="w-full py-2 text-sm text-red-400 font-medium"
-              >
-                식단 지우기
-              </button>
-            ) : (
-              <div className="flex items-center justify-center gap-3 py-1.5">
-                <span className="text-sm text-gray-500">정말 지울까요?</span>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-3 py-1.5 text-xs text-white bg-red-400 rounded-lg font-bold"
-                >
-                  삭제
-                </button>
-              </div>
-            )}
+        {/* Delete confirm - shown when trash icon tapped */}
+        {isExisting && showDeleteConfirm && (
+          <div className="px-4 pb-3 flex items-center justify-center gap-3 py-1.5">
+            <span className="text-sm text-gray-500">정말 지울까요?</span>
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1.5 text-xs text-white bg-red-400 rounded-lg font-bold"
+            >
+              삭제
+            </button>
           </div>
         )}
       </div>
