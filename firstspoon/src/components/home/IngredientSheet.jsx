@@ -47,7 +47,7 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
   }
 
   function handleCustomAdd() {
-    if (!customName.trim() || !customMl) return
+    if (!customName.trim()) return
     const newList = addCustomIngredient(customName.trim())
     setIngredients(newList)
     setSelectedList((prev) => {
@@ -216,7 +216,7 @@ export default function IngredientSheet({ mealKey, onAdd, onClose }) {
             <span className="text-xs text-gray-400">ml</span>
             <button
               onClick={handleCustomAdd}
-              disabled={!customName.trim() || !customMl}
+              disabled={!customName.trim()}
               className="px-3 py-1.5 bg-gray-700 text-white rounded-lg text-xs font-bold disabled:opacity-40 hover:bg-gray-800"
             >
               등록
